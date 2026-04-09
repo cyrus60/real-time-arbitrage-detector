@@ -122,13 +122,19 @@ class KalshiClient {
         }
 
         // cache orderbook snapshot under tickers
-        if ((msg.type === 'orderbook_snapshot') && this.callback) {            
-            this.orderBooks.set(ticker, {
+        if ((msg.type === 'orderbook_snapshot') && this.callback) {    
+            const yesEntries = (msg.msg.yes_dollars_fp || []).map(([price, qty]) => 
+                [Math.round(parseFloat(price) * 100), parseFloat(qty)]
+            );
 
-                // map price and quantity of bids on each side of market (yes/no)
-                yes: new Map(msg.msg.yes),
-                no: new Map(msg.msg.no)
-            })
+            const noEntries = (msg.msg.no_dollars_fp || []).map(([price, qty]) => 
+                [Math.round(parseFloat(price) * 100), parseFloat(qty)]
+            );
+
+            this.orderBooks.set(ticker, {
+                yes: new Map(yesEntries),
+                no: new Map(noEntries)
+            });
 
             this.emitPrices(ticker);
 
@@ -139,15 +145,12 @@ class KalshiClient {
             // retrieve side of delta update (yes/no), 
             const side = msg.msg.side === 'yes' ? book.yes : book.no;
 
-            const price = msg.msg.price;
-
-            // represents movement in quantity available at price 
-            const delta = msg.msg.delta;
+            const price = Math.round(parseFloat(msg.msg.price_dollars) * 100);
+            const delta = parseFloat(msg.msg.delta_fp);
 
             const currentQty = side.get(price) || 0;
             const qty = currentQty + delta;
 
-            // if updated quantity at price is less than 0, remove price, else update the quantity in map
             if (qty <= 0) {
                 side.delete(price);
             } else {

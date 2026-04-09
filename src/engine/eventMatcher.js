@@ -79,7 +79,11 @@ class EventMatcher {
             }, 
 
             MLB: {
-
+                'New York Yankees': 'NYY',
+                'San Francisco Giants': 'SF',
+                'Cincinnati Reds': 'CIN',
+                'Miami Marlins': 'MIA',
+                'The Athletics': 'ATH'
             }, 
 
             NCAAMB: {
